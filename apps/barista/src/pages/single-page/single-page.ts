@@ -26,6 +26,7 @@ import { BaRecentlyOrderedService } from '../../shared/recently-ordered.service'
 @Component({
   selector: 'ba-single-page',
   templateUrl: 'single-page.html',
+  styleUrls: ['single-page.scss'],
 })
 export class BaSinglePage implements BaPage, AfterViewInit {
   @Input()
@@ -40,6 +41,8 @@ export class BaSinglePage implements BaPage, AfterViewInit {
   }
   private _contents: BaSinglePageContent;
 
+  _showScrollToTop = false;
+
   constructor(private _recentlyOrderedService: BaRecentlyOrderedService) {}
 
   ngAfterViewInit(): void {
@@ -53,6 +56,34 @@ export class BaSinglePage implements BaPage, AfterViewInit {
     for (const table of allTables) {
       applyTableDefinitionHeadingAttr(table);
     }
+
+    let lastScrollPosition = 0;
+
+    window.addEventListener('scroll', () => {
+      const currentScrollPosition = window.scrollY;
+      if (
+        currentScrollPosition > lastScrollPosition ||
+        currentScrollPosition === 0
+      ) {
+        this._showScrollToTop = false;
+      } else {
+        this._showScrollToTop = true;
+      }
+      lastScrollPosition = currentScrollPosition;
+    });
+  }
+
+  /** @internal Whether to display the table of contents on the page. */
+  _showTOC(): boolean {
+    return this.contents && this.contents.toc !== false;
+  }
+
+  _scrollToTop(): void {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth',
+    });
   }
 
   /** check if the url contains a hash and scroll to the matching headline */
@@ -66,10 +97,5 @@ export class BaSinglePage implements BaPage, AfterViewInit {
         });
       }
     }
-  }
-
-  /** @internal Whether to display the table of contents on the page. */
-  _showTOC(): boolean {
-    return this.contents && this.contents.toc !== false;
   }
 }
